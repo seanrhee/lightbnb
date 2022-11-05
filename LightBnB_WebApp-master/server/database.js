@@ -29,8 +29,6 @@ const getUserWithEmail = function(email) {
       if (res.rows.length === 0) {
         return null;
       }
-
-      console.log(res.rows[0]);
       return res.rows[0];
     })
     .catch(err => {
@@ -55,8 +53,6 @@ const getUserWithId = function(id) {
       if (res.rows.length === 0) {
         return null;
       }
-
-      console.log(res.rows[0]);
       return res.rows[0];
     })
     .catch(err => {
@@ -79,7 +75,7 @@ const addUser =  function(user) {
     RETURNING *;
     `, [user.name, user.email, user.password])
     .then(res => {
-      console.log(res.rows)
+      return res.rows
     })
     .catch(err => {
       console.error('query error', err);
@@ -106,7 +102,6 @@ const getAllReservations = function(guest_id, limit = 10) {
     LIMIT $2
     `, [guest_id, limit])
     .then(res => {
-      console.log(res);
       return res.rows;
     })
     .catch(err => {
@@ -173,9 +168,6 @@ const getAllProperties = function(options, limit = 10) {
   LIMIT $${queryParams.length};
   `;
 
-  // log queryString and the params to the console
-  console.log(queryString, queryParams);
-
   return pool
     .query(queryString, queryParams)
     .then(res => {
@@ -201,7 +193,7 @@ const addProperty = function(property) {
     RETURNING *;
     `, [property.owner_id, property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url, property.cost_per_night, property.street, property.city, property.province, property.post_code, property.country, property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms])
     .then(res => {
-      console.log(res.rows)
+      return res.rows;
     })
     .catch(err => {
       console.error('query error', err);

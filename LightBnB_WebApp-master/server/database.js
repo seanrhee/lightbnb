@@ -1,7 +1,8 @@
 const properties = require('./json/properties.json');
 const users = require('./json/users.json');
 
-const { Pool } = require('pg')
+const { Pool } = require('pg');
+const { query } = require('express');
 
 const pool = new Pool({
   user: 'vagrant',
@@ -123,8 +124,60 @@ exports.getAllReservations = getAllReservations;
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = function(options, limit = 10) {
+
+  const queryParams = [];
+
+  // generic sql query string
+  let queryString = `
+  SELECT properties.*, avg(property_reviews.rating) as average_rating
+  FROM properties
+  JOIN property_reviews ON properties.id = property_id
+  `;
+
+  // when user clicks "my listings"
+  if (options.owner_id) {
+    queryParams.push(Number(options.owner_id));
+    queryString += `WHERE owner_id = $${queryParams.length} `
+  }
+
+  // if city is in the search param
+  if (options.city) {
+    queryParams.push(`%${options.city}%`);
+    queryString += `WHERE city LIKE $${queryParams.length} `;
+  }
+  // if min/max price are in the search param
+  if (options.minimum_price_per_night) {
+    queryParams.push(Number(options.minimum_price_per_night));
+    queryString += `AND cost_per_night > $${queryParams.length} `;
+  }
+  if (options.maximum_price_per_night) {
+    queryParams.push(Number(options.maximum_price_per_night));
+    queryString += `AND cost_per_night < $${queryParams.length} `;
+  }
+
+  // add GROUP BY statement
+  queryString += `
+  GROUP BY properties.id
+  `
+
+  // if minimum rating is in the search param 
+  if (options.minimum_rating) {
+    queryParams.push(Number(options.minimum_rating));
+    queryString += `HAVING AVG(property_reviews.rating) >= $${queryParams.length} `;
+  }
+  
+  // add order by + limit
+  queryParams.push(limit);
+  queryString += `
+  ORDER BY cost_per_night
+  LIMIT $${queryParams.length};
+  `;
+
+  // log queryString and the params to the console
+  console.log(queryString, queryParams);
+
   return pool
-    .query(`SELECT * FROM properties LIMIT $1`, [limit])
+    .query(queryString, queryParams)
     .then(res => {
       return res.rows;
     })

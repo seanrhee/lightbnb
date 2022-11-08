@@ -19,7 +19,9 @@ A user can:
 ## Screenshots
 - Property Listing (Homepage)
 ![a screenshot of the homepage](./screenshots/property-listing.png)
+
 - Add property
 ![a screenshot of the add property page](./screenshots/add-property.png)
+
 - Search properties
 ![a screenshot of the search page](./screenshots/search-property.png)
